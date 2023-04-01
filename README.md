@@ -14,3 +14,6 @@ Disini adalah modul golang paling dasar
 1. go run . (menunjukan kita akan menjalankan package main)
 2. go run nama file (package lain)
 3. go mod init (packages/urlbase) - copas dari URL Github - Harus sama
+
+Daftar Hadir
+![image](https://user-images.githubusercontent.com/15622730/229262458-39eea975-5a85-4ffc-8801-c3bbc20ba5e1.png)
