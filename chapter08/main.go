@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/websocket"
-	gubrak "github.com/novalagung/gubrak/v2"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
+	"github.com/gorilla/websocket"
+	"github.com/novalagung/gubrak/v2"
 )
 
 type M map[string]interface{}
@@ -24,18 +24,15 @@ type SocketPayload struct {
 }
 
 type SocketResponse struct {
-	From	string
-	Type	string	
-	Message	string
-
+	From    string
+	Type    string
+	Message string
 }
 
 type WebSocketConnection struct {
 	*websocket.Conn
 	Username string
 }
-
-
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -48,15 +45,14 @@ func main() {
 		fmt.Fprintf(w, "%s", content)
 	})
 
-	http.HandleFunc("/ws", func(w, http.ResponseWriter, r *http.Request) {
-		// socket code here
-		currentGorillaConn, err := websocket.Upgrade(w, r, w.Header(), 1024, 1024)
-		if err != nill {
-			http.Error(w, "Could not open websocket connection", htpp.StatusBadRequest)
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		currentGorillaConn, err := websocket.Upgrader(w, r, w.Header(), 1024, 1024)
+		if err != nil {
+			http.Error(w, "Could not open websocket connection", http.StatusBadRequest)
 		}
 
 		username := r.URL.Query().Get("username")
-		currentConn := WebSocketConnection(Conn; currentGorillaConn, Username: username)
+		currentConn := WebSocketConnection{Conn: currentGorillaConn, Username: username}
 		connections = append(connections, &currentConn)
 
 		go handleIO(&currentConn, connections)
@@ -68,10 +64,10 @@ func main() {
 
 func handleIO(currentConn *WebSocketConnection, connections []*WebSocketConnection) {
 	defer func() {
-		if r := recover(); r != nir {
-			log.Println("ERROR", fmt.Sprint("%v", r))
+		if r := recover(); r != nil {
+			log.Println("ERROR", fmt.Sprintf("%v", r))
 		}
-	} ()
+	}()
 
 	broadcastMessage(currentConn, MESSAGE_NEW_USER, "")
 
@@ -81,7 +77,7 @@ func handleIO(currentConn *WebSocketConnection, connections []*WebSocketConnecti
 		if err != nil {
 			if strings.Contains(err.Error(), "websocket: close") {
 				broadcastMessage(currentConn, MESSAGE_LEAVE, "")
-				ejectConnetion(currentConn)
+				ejectConnection(currentConn)
 				return
 			}
 
@@ -93,8 +89,8 @@ func handleIO(currentConn *WebSocketConnection, connections []*WebSocketConnecti
 	}
 }
 
-func ejectConnetion(currentConn *WebSocketConnection) {
-	filtered := gubrak.From(connection).Reject(func(each *WebSocketConnection) bool {
+func ejectConnection(currentConn *WebSocketConnection) {
+	filtered := gubrak.From(connections).Reject(func(each *WebSocketConnection) bool {
 		return each == currentConn
 	}).Result()
 	connections = filtered.([]*WebSocketConnection)
@@ -107,9 +103,9 @@ func broadcastMessage(currentConn *WebSocketConnection, kind, message string) {
 		}
 
 		eachConn.WriteJSON(SocketResponse{
-			From :	currentConn.Username,
-			Type :	kind,
-			Message	:	message,
+			From:    currentConn.Username,
+			Type:    kind,
+			Message: message,
 		})
 	}
 }
